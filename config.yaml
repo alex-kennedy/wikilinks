@@ -1,3 +1,3 @@
 root_dir: "data"
+site_url: "http://ftp.acc.umu.se/mirror/wikimedia.org/dumps/enwiki/"
 date: "20191201"
-mirror: "https://ftp.acc.umu.se/mirror/wikimedia.org/dumps/enwiki/"

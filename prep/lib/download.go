@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"crypto/md5"
@@ -12,8 +12,6 @@ import (
 	"strings"
 
 	"github.com/Jeffail/gabs/v2"
-
-	"github.com/dustin/go-humanize"
 )
 
 //verifyWikiFile accesses the MD5 of file as reported by the mirror and
@@ -57,33 +55,9 @@ func verifyWikiFile(fileName, siteURL, outPath string) error {
 	return nil
 }
 
-//writeCounter is a helper struct for printing progress during the file
-//download.
-type writeCounter struct {
-	Total uint64
-}
-
-func (wc *writeCounter) Write(p []byte) (int, error) {
-	n := len(p)
-	wc.Total += uint64(n)
-	wc.PrintProgress()
-	return n, nil
-}
-
-func (wc writeCounter) PrintProgress() {
-	fmt.Printf("\r%s", strings.Repeat(" ", 50))
-	fmt.Printf("\rDownloading... %s complete", humanize.Bytes(wc.Total))
-}
-
 //DownloadWikiFile downloads and verifies fileName from the wiki dump at
 //siteUrl. Saves it to outPath.
 func DownloadWikiFile(fileName, siteURL, outPath string) error {
-	out, err := os.Create(outPath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
 	response, err := http.Get(siteURL + fileName)
 	if err != nil {
 		return err
@@ -91,14 +65,24 @@ func DownloadWikiFile(fileName, siteURL, outPath string) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", response.Status)
+		return fmt.Errorf(
+			"Error getting %s bad status: %s",
+			siteURL+fileName,
+			response.Status)
 	}
 
-	counter := &writeCounter{}
+	out, err := os.Create(outPath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	counter := writeCounter{}.New(response.ContentLength)
 	_, err = io.Copy(out, io.TeeReader(response.Body, counter))
 	if err != nil {
 		return err
 	}
+	counter.pb.Finish()
 
 	err = verifyWikiFile(fileName, siteURL, outPath)
 	if err != nil {

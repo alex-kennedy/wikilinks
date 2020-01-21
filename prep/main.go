@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/alex-kennedy/wikilinks"
-	"github.com/spf13/viper"
+	"github.com/alex-kennedy/wikilinks/prep/tasks"
 )
 
 func main() {
@@ -14,10 +14,9 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	err := DownloadWikiFile("enwiki-20191201-redirect.sql.gz",
-		"https://ftp.acc.umu.se/mirror/wikimedia.org/dumps/enwiki/20191201/",
-		viper.GetString("redirect_sql_gz"))
+	task := tasks.ExtractRedirect{}
+	err := task.Run()
 	if err != nil {
-		log.Fatalf("%s", err)
+		log.Fatalln(err)
 	}
 }

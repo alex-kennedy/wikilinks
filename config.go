@@ -3,6 +3,7 @@ package wikilinks
 import (
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -10,16 +11,17 @@ import (
 func addFileNamesToConfig() {
 	viper.SetDefault("root_dir", "./data/")
 
-	rootDir := viper.GetString("root_dir")
+	dir := path.Join(viper.GetString("root_dir"), viper.GetString("date"))
 
-	viper.Set("pagelinks_sql_gz", path.Join(rootDir, "pagelinks.sql.gz"))
-	viper.Set("pagelinks_sql", path.Join(rootDir, "pagelinks.sql"))
+	viper.Set("pagelinks_sql_gz", path.Join(dir, "pagelinks.sql.gz"))
+	viper.Set("pagelinks_sql", path.Join(dir, "pagelinks.sql"))
 
-	viper.Set("page_sql_gz", path.Join(rootDir, "page.sql.gz"))
-	viper.Set("page_sql", path.Join(rootDir, "page.sql"))
+	viper.Set("page_sql_gz", path.Join(dir, "page.sql.gz"))
+	viper.Set("page_sql", path.Join(dir, "page.sql"))
 
-	viper.Set("redirect_sql_gz", path.Join(rootDir, "redirect.sql.gz"))
-	viper.Set("redirect_sql", path.Join(rootDir, "redirect.sql"))
+	viper.Set("redirect_sql_gz", path.Join(dir, "redirect.sql.gz"))
+	viper.Set("redirect_sql", path.Join(dir, "redirect.sql"))
+	viper.Set("redirect", path.Join(dir, "redirect.csv"))
 }
 
 //InitialiseConfig sets up the configuration with Viper.
@@ -37,8 +39,20 @@ func InitialiseConfig(configFileName *string) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			panic(fmt.Errorf("Config file not found"))
 		} else {
-			panic(fmt.Errorf("Fatal error config file: %s", err))
+			panic(fmt.Errorf("Fatal error in config file: %s", err))
 		}
+	}
+
+	if viper.GetString("date") == "" {
+		panic("No date in config")
+	}
+
+	siteURL := viper.GetString("site_url")
+	if siteURL == "" {
+		panic("No site_url in config")
+	}
+	if !strings.HasSuffix(siteURL, "/") {
+		siteURL = siteURL + "/"
 	}
 
 	addFileNamesToConfig()
