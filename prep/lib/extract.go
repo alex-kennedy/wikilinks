@@ -85,8 +85,8 @@ func ExtractTable(inPath, outPath string, indices []int, fieldsPerRecord int) er
 			return err
 		}
 		for _, record := range records {
-			for _, i := range indices {
-				output[i] = record[i]
+			for outI, recordI := range indices {
+				output[outI] = record[recordI]
 			}
 			err := writer.Write(output)
 			if err != nil {

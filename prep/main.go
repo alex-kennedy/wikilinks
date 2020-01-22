@@ -4,6 +4,8 @@ import (
 	"flag"
 	"log"
 
+	"github.com/alex-kennedy/wikilinks/prep/pipeline"
+
 	"github.com/alex-kennedy/wikilinks"
 	"github.com/alex-kennedy/wikilinks/prep/tasks"
 )
@@ -14,9 +16,8 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	task := tasks.ExtractRedirect{}
-	err := task.Run()
+	err := pipeline.Run(&tasks.ExtractPage{})
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf(err.Error())
 	}
 }

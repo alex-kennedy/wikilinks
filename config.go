@@ -15,13 +15,14 @@ func addFileNamesToConfig() {
 
 	viper.Set("pagelinks_sql_gz", path.Join(dir, "pagelinks.sql.gz"))
 	viper.Set("pagelinks_sql", path.Join(dir, "pagelinks.sql"))
+	viper.Set("pagelinks", path.Join(dir, "pagelinks.csv"))
 
 	viper.Set("page_sql_gz", path.Join(dir, "page.sql.gz"))
 	viper.Set("page_sql", path.Join(dir, "page.sql"))
+	viper.Set("page", path.Join(dir, "page.csv"))
 
 	viper.Set("redirect_sql_gz", path.Join(dir, "redirect.sql.gz"))
 	viper.Set("redirect_sql", path.Join(dir, "redirect.sql"))
-	viper.Set("redirect", path.Join(dir, "redirect.csv"))
 }
 
 //InitialiseConfig sets up the configuration with Viper.
