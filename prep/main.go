@@ -16,7 +16,7 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	err := pipeline.Run(&tasks.ExtractPage{})
+	err := pipeline.Run(&tasks.ExtractPagelinks{})
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

@@ -18,7 +18,7 @@ func (t *ExtractPagelinks) Run() error {
 	outPath := viper.GetString("pagelinks")
 	indices := []int{0, 2}
 	fieldsPerRecord := 4
-	return lib.ExtractTable(inPath, outPath, indices, fieldsPerRecord)
+	return lib.ExtractTable(inPath, outPath, indices, fieldsPerRecord, keepPagelinks)
 }
 
 //Done checks if the extraction completed successfully.
@@ -33,5 +33,10 @@ func (t *ExtractPagelinks) Cleanup() error {
 
 //Deps returns the dependencies of this task.
 func (t *ExtractPagelinks) Deps() []Task {
-	return []Task{&DownloadPagelinks{}}
+	return []Task{&UnzipPagelinks{}}
+}
+
+//keepPagelinks if pl_from_namespace == "0" and pl_namespace == "0"
+func keepPagelinks(record []string) bool {
+	return record[1] == "0" && record[3] == "0"
 }

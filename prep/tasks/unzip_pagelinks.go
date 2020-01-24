@@ -12,7 +12,7 @@ type UnzipPagelinks struct{}
 
 //Run extracts the file
 func (t *UnzipPagelinks) Run() error {
-	log.Println("Extracting pagelinks table...")
+	log.Println("Unzipping pagelinks table...")
 	inPath := viper.GetString("pagelinks_sql_gz")
 	outPath := viper.GetString("pagelinks_sql")
 	return lib.UnzipGzFile(inPath, outPath)

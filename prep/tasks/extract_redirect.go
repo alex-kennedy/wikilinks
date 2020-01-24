@@ -16,9 +16,9 @@ func (t *ExtractRedirect) Run() error {
 	log.Println("Extracting redirect...")
 	inPath := viper.GetString("redirect_sql")
 	outPath := viper.GetString("redirect")
-	indices := []int{0, 1, 2}
+	indices := []int{2, 0}
 	fieldsPerRecord := 5
-	return lib.ExtractTable(inPath, outPath, indices, fieldsPerRecord)
+	return lib.ExtractTable(inPath, outPath, indices, fieldsPerRecord, keepRedirect)
 }
 
 //Done checks if the extraction completed successfully.
@@ -33,5 +33,10 @@ func (t *ExtractRedirect) Cleanup() error {
 
 //Deps returns the dependencies of this task.
 func (t *ExtractRedirect) Deps() []Task {
-	return []Task{&DownloadRedirect{}}
+	return []Task{&UnzipRedirect{}}
+}
+
+//keepRedirect if rd_namespace == "0"
+func keepRedirect(record []string) bool {
+	return record[1] == "0"
 }

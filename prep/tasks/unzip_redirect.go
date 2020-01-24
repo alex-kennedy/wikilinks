@@ -12,7 +12,7 @@ type UnzipRedirect struct{}
 
 //Run extracts the file
 func (t *UnzipRedirect) Run() error {
-	log.Println("Extracting redirect table...")
+	log.Println("Unzipping redirect table...")
 	inPath := viper.GetString("redirect_sql_gz")
 	outPath := viper.GetString("redirect_sql")
 	return lib.UnzipGzFile(inPath, outPath)

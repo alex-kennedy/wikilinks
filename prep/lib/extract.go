@@ -3,6 +3,7 @@ package lib
 import (
 	"bufio"
 	"encoding/csv"
+	"log"
 	"os"
 	"strings"
 
@@ -47,9 +48,12 @@ func processLine(line string, fieldsPerRecord int) ([][]string, error) {
 }
 
 //ExtractTable extracts the given column indices from the entries in inPath.
-func ExtractTable(inPath, outPath string, indices []int, fieldsPerRecord int) error {
+func ExtractTable(
+	inPath, outPath string, indices []int, fieldsPerRecord int,
+	keep func([]string) bool) error {
 	fIn, err := os.Open(inPath)
 	if err != nil {
+		log.Printf("failed to open: %s", inPath)
 		return err
 	}
 	defer fIn.Close()
@@ -61,12 +65,14 @@ func ExtractTable(inPath, outPath string, indices []int, fieldsPerRecord int) er
 
 	fOut, err := os.Create(outPath)
 	if err != nil {
+		log.Printf("could not open file: %s", outPath)
 		return err
 	}
 	defer fOut.Close()
 	writer := csv.NewWriter(fOut)
-	output := make([]string, len(indices))
+	defer writer.Flush()
 
+	output := make([]string, len(indices), len(indices))
 	pb := pb.StartNew(-1)
 
 	dataRemaining := true
@@ -85,6 +91,9 @@ func ExtractTable(inPath, outPath string, indices []int, fieldsPerRecord int) er
 			return err
 		}
 		for _, record := range records {
+			if !keep(record) {
+				continue
+			}
 			for outI, recordI := range indices {
 				output[outI] = record[recordI]
 			}
