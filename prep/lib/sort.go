@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cheggaaa/pb"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -122,8 +123,10 @@ func mergeChunks(files []string, out string, bufferSize int) error {
 		h.insert(c)
 	}
 
+	log.Println("Merging...")
+	bar := pb.StartNew(-1)
 	for h.placeMin() {
-		continue
+		bar.Add(1)
 	}
 	return nil
 }

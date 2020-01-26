@@ -2,12 +2,11 @@ package main
 
 import (
 	"flag"
-	"log"
+	"fmt"
 
-	"github.com/alex-kennedy/wikilinks/prep/pipeline"
+	"github.com/alex-kennedy/wikilinks/prep/lib"
 
 	"github.com/alex-kennedy/wikilinks"
-	"github.com/alex-kennedy/wikilinks/prep/tasks"
 )
 
 func main() {
@@ -16,8 +15,10 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	err := pipeline.Run(&tasks.ExtractPagelinks{})
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
+	// err := pipeline.Run(&tasks.ExtractPagelinks{})
+	// if err != nil {
+	// 	log.Fatalf(err.Error())
+	// }
+	err := lib.IndexFile("data/20191201/test", "data/20191201/testindex.csv")
+	fmt.Println(err)
 }
