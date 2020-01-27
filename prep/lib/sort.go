@@ -10,11 +10,13 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 //chunk represents one sorted file
 type chunk struct {
 	head   string
+	key    string
 	reader *bufio.Scanner
 	alive  bool
 }
@@ -22,10 +24,16 @@ type chunk struct {
 func (c *chunk) pop() {
 	c.alive = c.reader.Scan()
 	c.head = c.reader.Text()
+	commaIndex := strings.LastIndex(c.head, ",")
+	if commaIndex == -1 {
+		c.key = c.head
+	} else {
+		c.key = c.head[:commaIndex]
+	}
 }
 
 func (c *chunk) lessThan(d *chunk) bool {
-	return c.head < d.head
+	return c.key < d.key
 }
 
 //parent calculates the parent node of the ith node.
@@ -118,7 +126,7 @@ func mergeChunks(files []string, out string, bufferSize int) error {
 		buffer := make([]byte, bufferSize)
 		reader.Buffer(buffer, bufferSize)
 
-		c := &chunk{"", reader, true}
+		c := &chunk{"", "", reader, true}
 		c.pop()
 		h.insert(c)
 	}
@@ -128,7 +136,37 @@ func mergeChunks(files []string, out string, bufferSize int) error {
 	for h.placeMin() {
 		bar.Add(1)
 	}
+	bar.Finish()
 	return nil
+}
+
+//keySorter allows us to sort by keys, not just the whole line.
+type keySorter struct {
+	toSort []string
+}
+
+func (k *keySorter) Len() int {
+	return len(k.toSort)
+}
+
+func (k *keySorter) Swap(i, j int) {
+	k.toSort[i], k.toSort[j] = k.toSort[j], k.toSort[i]
+}
+
+func (k *keySorter) Less(i, j int) bool {
+	commaIndex := strings.LastIndex(k.toSort[i], ",")
+	if commaIndex == -1 {
+		return false
+	}
+	keyA := k.toSort[i][:commaIndex]
+
+	commaIndex = strings.LastIndex(k.toSort[j], ",")
+	if commaIndex == -1 {
+		return true
+	}
+	keyB := k.toSort[j][:commaIndex]
+
+	return keyA < keyB
 }
 
 //sortIntoChunks produces individually sorted chunks of a file.
@@ -161,7 +199,7 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int) error {
 			toSort = append(toSort, scanner.Text())
 		}
 
-		sort.Strings(toSort)
+		sort.Sort(&keySorter{toSort})
 		for _, line := range toSort {
 			writer.WriteString(line + "\n")
 		}
@@ -170,6 +208,7 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int) error {
 		toSort = toSort[:0]
 	}
 
+	bar.Finish()
 	return nil
 }
 

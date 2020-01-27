@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
-
-	"github.com/alex-kennedy/wikilinks/prep/lib"
+	"log"
 
 	"github.com/alex-kennedy/wikilinks"
+	"github.com/alex-kennedy/wikilinks/prep/pipeline"
+	"github.com/alex-kennedy/wikilinks/prep/tasks"
 )
 
 func main() {
@@ -15,10 +15,18 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	// err := pipeline.Run(&tasks.ExtractPagelinks{})
+	err := pipeline.Run(&tasks.IndexPageDirect{})
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	// name := viper.GetString("page_direct_sorted")
+	// index := viper.GetString("page_direct_index")
+
+	// bSearcher, err := lib.NewBinarySearcher(name, index)
 	// if err != nil {
-	// 	log.Fatalf(err.Error())
+	// 	fmt.Println(err)
+	// 	return
 	// }
-	err := lib.IndexFile("data/20191201/test", "data/20191201/testindex.csv")
-	fmt.Println(err)
+	// fmt.Println(bSearcher.Search("\"...\"\"Let_Me_Sing\"\"\""))
 }
