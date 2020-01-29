@@ -23,10 +23,14 @@ func addFileNamesToConfig() {
 	viper.Set("page_redirect", path.Join(dir, "page_redirect.csv"))
 	viper.Set("page_direct_sorted", path.Join(dir, "page_direct_sorted.csv"))
 	viper.Set("page_direct_index", path.Join(dir, "page_direct_index.index"))
+	viper.Set("page_redirect_sorted", path.Join(dir, "page_redirect_sorted.csv"))
+	viper.Set("page_redirect_resolved", path.Join(dir, "page_redirect_resolved.csv"))
 
 	viper.Set("redirect_sql_gz", path.Join(dir, "redirect.sql.gz"))
 	viper.Set("redirect_sql", path.Join(dir, "redirect.sql"))
 	viper.Set("redirect", path.Join(dir, "redirect.csv"))
+	viper.Set("redirect_sorted", path.Join(dir, "redirect_sorted.csv"))
+	viper.Set("redirect_index", path.Join(dir, "redirect_index.index"))
 }
 
 //InitialiseConfig sets up the configuration with Viper.
@@ -60,7 +64,7 @@ func InitialiseConfig(configFileName *string) {
 		siteURL = siteURL + "/"
 	}
 
-	viper.SetDefault("bytes", 1073741824) // 1GB
+	viper.SetDefault("bytes", 1024*1024*1024) // 1GB
 
 	addFileNamesToConfig()
 }

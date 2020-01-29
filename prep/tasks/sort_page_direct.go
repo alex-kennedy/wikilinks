@@ -16,7 +16,7 @@ func (t *SortPageDirect) Run() error {
 	inPath := viper.GetString("page_direct")
 	outPath := viper.GetString("page_direct_sorted")
 	nBytes := viper.GetInt("bytes")
-	return lib.ExternalSort(inPath, outPath, nBytes)
+	return lib.ExternalSort(inPath, outPath, nBytes, lib.KeyValLastComma)
 }
 
 //Done checks if the sort completed successfully.
