@@ -3,10 +3,10 @@ package lib
 import (
 	"bufio"
 	"fmt"
-	"github.com/cheggaaa/pb"
 	"os"
 	"strconv"
-	"strings"
+
+	"github.com/cheggaaa/pb"
 )
 
 //IndexFile produces a file of int64s with the byte locations of the beginning
@@ -90,27 +90,28 @@ func getReadBuffer(index []int64) []byte {
 
 //BinarySearcher holds the information needed to binary search a sorted file.
 type BinarySearcher struct {
-	file   *os.File
-	index  []int64
-	buffer []byte
+	file           *os.File
+	index          []int64
+	buffer         []byte
+	keyValFunction KeyValFunction
 }
 
 //Search runs a binary search for the given key.
-func (b *BinarySearcher) Search(key string) (string, error) {
-	//The length of the index is one longer than the file, and the last index
-	//is one less again.
+func (b *BinarySearcher) Search(key string) (int, string, error) {
+	//The length of the file is one less than the index, and the last index is
+	//one less again.
 	return b.binarySearch(&key, 0, len(b.index)-2)
 }
 
-func (b *BinarySearcher) binarySearch(key *string, lo, hi int) (string, error) {
+func (b *BinarySearcher) binarySearch(key *string, lo, hi int) (int, string, error) {
 	if lo > hi {
-		return "", &NotFoundError{}
+		return -1, "", &NotFoundError{}
 	}
 	middle := (lo + hi) / 2
 
 	k, v := b.getLine(middle)
 	if k == *key {
-		return v, nil
+		return middle, v, nil
 	}
 
 	if *key > k {
@@ -122,18 +123,16 @@ func (b *BinarySearcher) binarySearch(key *string, lo, hi int) (string, error) {
 func (b *BinarySearcher) getLine(i int) (string, string) {
 	b.file.Seek(b.index[i], 0)
 	buffer := b.buffer[:b.index[i+1]-b.index[i]]
-	n, err := b.file.Read(buffer)
+	n, _ := b.file.Read(buffer)
 	if n == 0 {
-		fmt.Println(err)
-		panic("nope")
+		return "", ""
 	}
 	line := string(buffer)
-	splitIndex := strings.LastIndex(line, ",")
-	return line[:splitIndex], line[splitIndex+1:]
+	return b.keyValFunction(line)
 }
 
 //NewBinarySearcher creates an object for binary searching a file.
-func NewBinarySearcher(name, indexName string) (*BinarySearcher, error) {
+func NewBinarySearcher(name, indexName string, keyVal KeyValFunction) (*BinarySearcher, error) {
 	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -144,5 +143,5 @@ func NewBinarySearcher(name, indexName string) (*BinarySearcher, error) {
 		return nil, err
 	}
 	buffer := getReadBuffer(index)
-	return &BinarySearcher{f, index, buffer}, nil
+	return &BinarySearcher{f, index, buffer, keyVal}, nil
 }

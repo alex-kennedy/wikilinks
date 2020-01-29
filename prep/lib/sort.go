@@ -3,33 +3,30 @@ package lib
 import (
 	"bufio"
 	"fmt"
-	"github.com/cheggaaa/pb"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
-	"strings"
+
+	"github.com/cheggaaa/pb"
 )
 
 //chunk represents one sorted file
 type chunk struct {
-	head   string
-	key    string
-	reader *bufio.Scanner
-	alive  bool
+	head           string
+	key            string
+	reader         *bufio.Scanner
+	alive          bool
+	keyValFunction KeyValFunction
 }
 
 func (c *chunk) pop() {
 	c.alive = c.reader.Scan()
 	c.head = c.reader.Text()
-	commaIndex := strings.LastIndex(c.head, ",")
-	if commaIndex == -1 {
-		c.key = c.head
-	} else {
-		c.key = c.head[:commaIndex]
-	}
+	k, _ := c.keyValFunction(c.head)
+	c.head = k
 }
 
 func (c *chunk) lessThan(d *chunk) bool {
@@ -105,7 +102,7 @@ func (h *fheap) bubbleDown(i int) {
 	}
 }
 
-func mergeChunks(files []string, out string, bufferSize int) error {
+func mergeChunks(files []string, out string, bufferSize int, keyVal KeyValFunction) error {
 	fOut, err := os.Create(out)
 	if err != nil {
 		return err
@@ -126,7 +123,7 @@ func mergeChunks(files []string, out string, bufferSize int) error {
 		buffer := make([]byte, bufferSize)
 		reader.Buffer(buffer, bufferSize)
 
-		c := &chunk{"", "", reader, true}
+		c := &chunk{"", "", reader, true, keyVal}
 		c.pop()
 		h.insert(c)
 	}
@@ -142,7 +139,8 @@ func mergeChunks(files []string, out string, bufferSize int) error {
 
 //keySorter allows us to sort by keys, not just the whole line.
 type keySorter struct {
-	toSort []string
+	toSort         []string
+	keyValFunction KeyValFunction
 }
 
 func (k *keySorter) Len() int {
@@ -154,23 +152,13 @@ func (k *keySorter) Swap(i, j int) {
 }
 
 func (k *keySorter) Less(i, j int) bool {
-	commaIndex := strings.LastIndex(k.toSort[i], ",")
-	if commaIndex == -1 {
-		return false
-	}
-	keyA := k.toSort[i][:commaIndex]
-
-	commaIndex = strings.LastIndex(k.toSort[j], ",")
-	if commaIndex == -1 {
-		return true
-	}
-	keyB := k.toSort[j][:commaIndex]
-
-	return keyA < keyB
+	kI, _ := k.keyValFunction(k.toSort[i])
+	kJ, _ := k.keyValFunction(k.toSort[j])
+	return kI < kJ
 }
 
 //sortIntoChunks produces individually sorted chunks of a file.
-func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int) error {
+func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int, keyVal KeyValFunction) error {
 	bar := pb.StartNew(-1)
 	bar.Set(pb.Bytes, true)
 
@@ -199,7 +187,7 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int) error {
 			toSort = append(toSort, scanner.Text())
 		}
 
-		sort.Sort(&keySorter{toSort})
+		sort.Sort(&keySorter{toSort, keyVal})
 		for _, line := range toSort {
 			writer.WriteString(line + "\n")
 		}
@@ -214,7 +202,7 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int) error {
 
 //ExternalSort sorts the lines of in and writes them to out. Attempts to use no
 //more than nBytes of space.
-func ExternalSort(in, out string, nBytes int) error {
+func ExternalSort(in, out string, nBytes int, keyVal KeyValFunction) error {
 	fIn, err := os.Open(in)
 	if err != nil {
 		return err
@@ -229,7 +217,7 @@ func ExternalSort(in, out string, nBytes int) error {
 	tempPath, _ := ioutil.TempDir(path, "sort")
 	defer os.RemoveAll(tempPath)
 
-	sortIntoChunks(scanner, tempPath, nBytes)
+	sortIntoChunks(scanner, tempPath, nBytes, keyVal)
 	chunkPaths, _ := filepath.Glob(tempPath + "/*")
-	return mergeChunks(chunkPaths, out, nBytes/(len(chunkPaths)+1))
+	return mergeChunks(chunkPaths, out, nBytes/(len(chunkPaths)+1), keyVal)
 }
