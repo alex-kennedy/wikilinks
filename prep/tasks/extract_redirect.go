@@ -16,7 +16,7 @@ func (t *ExtractRedirect) Run() error {
 	log.Println("Extracting redirect...")
 	inPath := viper.GetString("redirect_sql")
 	outPath := viper.GetString("redirect")
-	indices := []int{2, 0}
+	indices := []int{0, 2}
 	fieldsPerRecord := 5
 	return lib.ExtractTable(inPath, outPath, indices, fieldsPerRecord, keepRedirect)
 }
