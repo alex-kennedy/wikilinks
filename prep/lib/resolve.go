@@ -2,15 +2,31 @@ package lib
 
 import (
 	"bufio"
-	"github.com/cheggaaa/pb"
 	"log"
 	"os"
+
+	"github.com/cheggaaa/pb"
 )
+
+//Status stores stats about the resolution process.
+type Status struct {
+	successfulRedirectLookups int
+	failedRedirectLooksups    int
+	successfulPageLookups     int
+	failedPageLookups         int
+}
+
+func (s *Status) printStatus() {
+	log.Printf("redirect %d:%d", s.failedRedirectLooksups, s.successfulRedirectLookups)
+	log.Printf("page: %d:%d", s.failedPageLookups, s.successfulPageLookups)
+}
 
 //ResolveRedirects resolves the page_redirect -> redirect -> page_direct
 //problem.
 func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 	pageDirect, pageDirectIndex string, bytesPerBuffer int) error {
+	status := Status{}
+	status.printStatus()
 
 	pageRedirectFile, err := os.Open(pageRedirect)
 	if err != nil {
@@ -51,20 +67,23 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		// Phase A: pageRedirect[redirect page ID] -> redirect[title of dest page]
 		_, kB, err := redirectSearcher.Search(vA)
 		if err != nil {
-			log.Printf("%s does not exist in redirect", vA)
+			status.failedRedirectLooksups++
 			continue
 		}
+		status.successfulRedirectLookups++
 
 		// Phase B: redirect[title of dest page] -> pageDirect[true page ID]
 		_, vB, err := pageDirectSearcher.Search(kB)
 		if err != nil {
-			log.Printf("%s does not exist in page_direct", kB)
+			status.failedPageLookups++
 			continue
 		}
+		status.successfulPageLookups++
 
 		resolvedWriter.WriteString(kA + "," + vB + "\n")
 		pb.Add(1)
 	}
 
+	status.printStatus()
 	return nil
 }

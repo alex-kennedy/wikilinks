@@ -10,7 +10,8 @@ import (
 )
 
 //IndexFile produces a file of int64s with the byte locations of the beginning
-//of each line.
+//of each line. This function is very inefficient, but not enough to compel me
+//to make improvements.
 func IndexFile(in, out string) error {
 	bar := pb.StartNew(-1)
 	defer bar.Finish()
@@ -122,7 +123,7 @@ func (b *BinarySearcher) binarySearch(key *string, lo, hi int) (int, string, err
 
 func (b *BinarySearcher) getLine(i int) (string, string) {
 	b.file.Seek(b.index[i], 0)
-	buffer := b.buffer[:b.index[i+1]-b.index[i]]
+	buffer := b.buffer[:b.index[i+1]-b.index[i]-1]
 	n, _ := b.file.Read(buffer)
 	if n == 0 {
 		return "", ""

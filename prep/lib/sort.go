@@ -26,7 +26,7 @@ func (c *chunk) pop() {
 	c.alive = c.reader.Scan()
 	c.head = c.reader.Text()
 	k, _ := c.keyValFunction(c.head)
-	c.head = k
+	c.key = k
 }
 
 func (c *chunk) lessThan(d *chunk) bool {

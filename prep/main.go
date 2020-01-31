@@ -15,18 +15,8 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	err := pipeline.Run(&tasks.IndexPageDirect{})
+	err := pipeline.Run(&tasks.ResolveRedirects{})
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-
-	// name := viper.GetString("page_direct_sorted")
-	// index := viper.GetString("page_direct_index")
-
-	// bSearcher, err := lib.NewBinarySearcher(name, index)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println(bSearcher.Search("\"...\"\"Let_Me_Sing\"\"\""))
 }

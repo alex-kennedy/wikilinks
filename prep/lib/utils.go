@@ -58,5 +58,8 @@ func KeyValLastComma(s string) (string, string) {
 //suitable when the ID is first.
 func KeyValFirstComma(s string) (string, string) {
 	commaIndex := strings.Index(s, ",")
+	if commaIndex == -1 {
+		return s, ""
+	}
 	return s[:commaIndex], s[commaIndex+1:]
 }
