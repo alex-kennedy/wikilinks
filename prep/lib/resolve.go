@@ -2,8 +2,10 @@ package lib
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/cheggaaa/pb"
 )
@@ -17,8 +19,8 @@ type Status struct {
 }
 
 func (s *Status) printStatus() {
-	log.Printf("redirect %d:%d", s.failedRedirectLooksups, s.successfulRedirectLookups)
-	log.Printf("page: %d:%d", s.failedPageLookups, s.successfulPageLookups)
+	log.Printf("redirect %d failed, %d succeeded", s.failedRedirectLooksups, s.successfulRedirectLookups)
+	log.Printf("page: %d failed, %d succeeded", s.failedPageLookups, s.successfulPageLookups)
 }
 
 //ResolveRedirects resolves the page_redirect -> redirect -> page_direct
@@ -85,5 +87,73 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 	}
 
 	status.printStatus()
+	return nil
+}
+
+//ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs.
+func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string,
+	bytesPerBuffer int) error {
+	successful, failed := 0, 0
+
+	pagelinksFile, err := os.Open(pagelinks)
+	if err != nil {
+		return err
+	}
+	defer pagelinksFile.Close()
+	pagelinksScanner := bufio.NewScanner(pagelinksFile)
+	scannerBuffer := make([]byte, bytesPerBuffer)
+	pagelinksScanner.Buffer(scannerBuffer, bytesPerBuffer)
+
+	outFile, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+	outWriter := bufio.NewWriterSize(outFile, bytesPerBuffer)
+	defer outWriter.Flush()
+
+	pageSearcher, err := NewBinarySearcher(pageMerged, pageMergedIndex, KeyValFirstComma)
+	if err != nil {
+		return err
+	}
+
+	pb := pb.StartNew(-1)
+	defer pb.Finish()
+
+	for pagelinksScanner.Scan() {
+		line := pagelinksScanner.Text()
+		key, title := KeyValFirstComma(line)
+		if title == "" {
+			failed++
+			continue
+		}
+
+		_, titleID, err := pageSearcher.Search(title)
+		if err != nil {
+			failed++
+			fmt.Println(title)
+			continue
+		}
+
+		keyInt, err := strconv.Atoi(key)
+		if err != nil {
+			failed++
+			log.Printf("'%s' couldn't be parsed to int", key)
+			continue
+		}
+		titleIDInt, err := strconv.Atoi(titleID)
+		if err != nil {
+			failed++
+			log.Printf("'%s' couldn't be parsed to int", titleID)
+			continue
+		}
+
+		successful++
+		outWriter.WriteString(strconv.FormatInt(int64(keyInt), 36) + "," +
+			strconv.FormatInt(int64(titleIDInt), 36) + "\n")
+		pb.Add(1)
+	}
+
+	log.Printf("%d failed, %d lines succeeded", failed, successful)
 	return nil
 }
