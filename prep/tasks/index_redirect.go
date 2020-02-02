@@ -18,12 +18,12 @@ func (t *IndexRedirect) Run() error {
 	return lib.IndexFile(inPath, outPath)
 }
 
-//Done checks if the unzip completed successfully.
+//Done checks if the indexing completed successfully.
 func (t *IndexRedirect) Done() bool {
 	return lib.CheckExists(viper.GetString("redirect_index"))
 }
 
-//Cleanup removes partial files on a failed unzip.
+//Cleanup removes partial files on a failed indexing.
 func (t *IndexRedirect) Cleanup() error {
 	return lib.CleanupFile(viper.GetString("redirect_index"))
 }
