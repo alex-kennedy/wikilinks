@@ -102,7 +102,8 @@ func (h *fheap) bubbleDown(i int) {
 	}
 }
 
-func mergeChunks(files []string, out string, bufferSize int, keyVal KeyValFunction) error {
+//MergeChunks merges a list of sorted files into one.
+func MergeChunks(files []string, out string, bufferSize int, keyVal KeyValFunction) error {
 	fOut, err := os.Create(out)
 	if err != nil {
 		return err
@@ -219,5 +220,5 @@ func ExternalSort(in, out string, nBytes int, keyVal KeyValFunction) error {
 
 	sortIntoChunks(scanner, tempPath, nBytes, keyVal)
 	chunkPaths, _ := filepath.Glob(tempPath + "/*")
-	return mergeChunks(chunkPaths, out, nBytes/(len(chunkPaths)+1), keyVal)
+	return MergeChunks(chunkPaths, out, nBytes/(len(chunkPaths)+1), keyVal)
 }

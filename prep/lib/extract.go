@@ -75,9 +75,7 @@ func ExtractTable(
 	output := make([]string, len(indices), len(indices))
 	pb := pb.StartNew(-1)
 
-	dataRemaining := true
-	for dataRemaining {
-		dataRemaining = scanner.Scan()
+	for scanner.Scan() {
 		if scanner.Err() != nil {
 			return scanner.Err()
 		}
@@ -102,6 +100,8 @@ func ExtractTable(
 				return err
 			}
 		}
+		log.Println("WARNING  Extracted 1 line!!!!! DO NOT SUBMIT")
+		break
 	}
 	pb.Finish()
 	return nil

@@ -16,6 +16,9 @@ func addFileNamesToConfig() {
 	viper.Set("pagelinks_sql_gz", path.Join(dir, "pagelinks.sql.gz"))
 	viper.Set("pagelinks_sql", path.Join(dir, "pagelinks.sql"))
 	viper.Set("pagelinks", path.Join(dir, "pagelinks.csv"))
+	viper.Set("pagelinks_resolved", path.Join(dir, "pagelinks_resolved.csv"))
+	viper.Set("pagelinks_sorted", path.Join(dir, "pagelinks_sorted.csv"))
+	viper.Set("pagelinks_pivoted", path.Join(dir, "pagelinks_pivoted.csv"))
 
 	viper.Set("page_sql_gz", path.Join(dir, "page.sql.gz"))
 	viper.Set("page_sql", path.Join(dir, "page.sql"))
@@ -25,6 +28,8 @@ func addFileNamesToConfig() {
 	viper.Set("page_direct_index", path.Join(dir, "page_direct_index.index"))
 	viper.Set("page_redirect_sorted", path.Join(dir, "page_redirect_sorted.csv"))
 	viper.Set("page_redirect_resolved", path.Join(dir, "page_redirect_resolved.csv"))
+	viper.Set("page_merged", path.Join(dir, "page_merged.csv"))
+	viper.Set("page_merged_index", path.Join(dir, "page_merged_index.index"))
 
 	viper.Set("redirect_sql_gz", path.Join(dir, "redirect.sql.gz"))
 	viper.Set("redirect_sql", path.Join(dir, "redirect.sql"))

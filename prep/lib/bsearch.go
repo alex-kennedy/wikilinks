@@ -35,6 +35,8 @@ func IndexFile(in, out string) error {
 		if n == 0 {
 			break
 		}
+		//Though this is a UTF8 file with variable length characters, it is so that
+		//this byte pair will never occur except to represent a new line. Nifty.
 		if nextByte[0] != newLine[0] {
 			continue
 		}
