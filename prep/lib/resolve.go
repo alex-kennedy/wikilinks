@@ -2,7 +2,6 @@ package lib
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -131,7 +130,6 @@ func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string,
 		_, titleID, err := pageSearcher.Search(title)
 		if err != nil {
 			failed++
-			fmt.Println(title)
 			continue
 		}
 

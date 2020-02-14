@@ -100,8 +100,6 @@ func ExtractTable(
 				return err
 			}
 		}
-		log.Println("WARNING  Extracted 1 line!!!!! DO NOT SUBMIT")
-		break
 	}
 	pb.Finish()
 	return nil
