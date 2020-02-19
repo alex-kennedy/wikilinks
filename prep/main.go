@@ -15,7 +15,7 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	err := pipeline.Run(&tasks.ResolveRedirects{})
+	err := pipeline.Run(&tasks.IndexPagelinksPivoted{})
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

@@ -19,6 +19,7 @@ func addFileNamesToConfig() {
 	viper.Set("pagelinks_resolved", path.Join(dir, "pagelinks_resolved.csv"))
 	viper.Set("pagelinks_sorted", path.Join(dir, "pagelinks_sorted.csv"))
 	viper.Set("pagelinks_pivoted", path.Join(dir, "pagelinks_pivoted.csv"))
+	viper.Set("pagelinks_pivoted_index", path.Join(dir, "pagelinks_pivoted_index.csv"))
 
 	viper.Set("page_sql_gz", path.Join(dir, "page.sql.gz"))
 	viper.Set("page_sql", path.Join(dir, "page.sql"))
