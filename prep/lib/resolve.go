@@ -99,8 +99,7 @@ func valueOnly(s string) (string, string) {
 //ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs.
 //Note that if the ID of the page is not in the page_direct file, it can never
 //have an inbound link to it, so it will be skipped.
-func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string,
-	bytesPerBuffer int) error {
+func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string) error {
 	successful, failed := 0, 0
 
 	pagelinksFile, err := os.Open(pagelinks)
@@ -109,15 +108,13 @@ func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string,
 	}
 	defer pagelinksFile.Close()
 	pagelinksScanner := bufio.NewScanner(pagelinksFile)
-	scannerBuffer := make([]byte, bytesPerBuffer)
-	pagelinksScanner.Buffer(scannerBuffer, bytesPerBuffer)
 
 	outFile, err := os.Create(out)
 	if err != nil {
 		return err
 	}
 	defer outFile.Close()
-	outWriter := bufio.NewWriterSize(outFile, bytesPerBuffer)
+	outWriter := bufio.NewWriter(outFile)
 	defer outWriter.Flush()
 
 	pageSearcher, err := NewMapSearcher(pageMerged, KeyValFirstComma)

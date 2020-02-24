@@ -17,8 +17,7 @@ func (t *ResolvePagelinks) Run() error {
 	pageDirect := viper.GetString("page_direct")
 	pagelinks := viper.GetString("pagelinks")
 	out := viper.GetString("pagelinks_resolved")
-	bytesPerBuffer := viper.GetInt("bytes") / 10 //Arbitrary
-	return lib.ResolvePagelinks(pageMerged, pageDirect, pagelinks, out, bytesPerBuffer)
+	return lib.ResolvePagelinks(pageMerged, pageDirect, pagelinks, out)
 }
 
 //Done checks if the resolution completed successfully.
