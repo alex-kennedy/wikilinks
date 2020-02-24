@@ -66,7 +66,7 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		}
 
 		// Phase A: pageRedirect[redirect page ID] -> redirect[title of dest page]
-		_, kB, err := redirectSearcher.Search(vA)
+		kB, err := redirectSearcher.Search(vA)
 		if err != nil {
 			status.failedRedirectLooksups++
 			continue
@@ -74,7 +74,7 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		status.successfulRedirectLookups++
 
 		// Phase B: redirect[title of dest page] -> pageDirect[true page ID]
-		_, vB, err := pageDirectSearcher.Search(kB)
+		vB, err := pageDirectSearcher.Search(kB)
 		if err != nil {
 			status.failedPageLookups++
 			continue
@@ -89,8 +89,17 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 	return nil
 }
 
+//valueOnly is KeyValFunction which uses only the value, ignoring the key.
+//Allows a searcher to act as a membership checker.
+func valueOnly(s string) (string, string) {
+	_, v := KeyValLastComma(s)
+	return v, ""
+}
+
 //ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs.
-func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string,
+//Note that if the ID of the page is not in the page_direct file, it can never
+//have an inbound link to it, so it will be skipped.
+func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string,
 	bytesPerBuffer int) error {
 	successful, failed := 0, 0
 
@@ -111,7 +120,12 @@ func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string,
 	outWriter := bufio.NewWriterSize(outFile, bytesPerBuffer)
 	defer outWriter.Flush()
 
-	pageSearcher, err := NewBinarySearcher(pageMerged, pageMergedIndex, KeyValFirstComma)
+	pageSearcher, err := NewMapSearcher(pageMerged, KeyValFirstComma)
+	if err != nil {
+		return err
+	}
+
+	pageIDChecker, err := NewMapSearcher(pageDirect, valueOnly)
 	if err != nil {
 		return err
 	}
@@ -126,8 +140,13 @@ func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string,
 			failed++
 			continue
 		}
+		_, err := pageIDChecker.Search(key)
+		if err != nil {
+			failed++
+			continue
+		}
 
-		_, titleID, err := pageSearcher.Search(title)
+		titleID, err := pageSearcher.Search(title)
 		if err != nil {
 			failed++
 			continue
