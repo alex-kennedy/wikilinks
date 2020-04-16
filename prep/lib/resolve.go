@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -55,7 +56,6 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		return err
 	}
 
-	log.Printf("Resolving pagelinks...")
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
 
@@ -123,6 +123,7 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 		return err
 	}
 
+	log.Printf("Resolving pagelinks...")
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
 
@@ -154,8 +155,9 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 		}
 
 		successful++
-		outWriter.WriteString(strconv.FormatInt(int64(keyInt), 36) + "," +
-			strconv.FormatInt(int64(titleIDInt), 36) + "\n")
+		outWriter.WriteString(fmt.Sprintf("%s,%s\n",
+			strconv.FormatInt(int64(keyInt), 36),
+			strconv.FormatInt(int64(titleIDInt), 36)))
 		pb.Add(1)
 	}
 
