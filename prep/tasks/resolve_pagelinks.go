@@ -14,10 +14,9 @@ type ResolvePagelinks struct{}
 func (t *ResolvePagelinks) Run() error {
 	log.Println("Resolving pagelinks...")
 	pageMerged := viper.GetString("page_merged")
-	pageDirect := viper.GetString("page_direct")
 	pagelinks := viper.GetString("pagelinks")
 	out := viper.GetString("pagelinks_resolved")
-	return lib.ResolvePagelinks(pageMerged, pageDirect, pagelinks, out)
+	return lib.ResolvePagelinks(pageMerged, pagelinks, out)
 }
 
 //Done checks if the resolution completed successfully.

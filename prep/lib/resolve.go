@@ -96,10 +96,10 @@ func valueOnly(s string) (string, string) {
 	return v, ""
 }
 
-//ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs.
-//Note that if the ID of the page is not in the page_direct file, it can never
-//have an inbound link to it, so it will be skipped.
-func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string) error {
+//ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs
+//(to reduce disk space). Note that if the ID of the page is not in the
+//page_direct ('real' pages) file, it can never have an inbound link.
+func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	successful, failed := 0, 0
 
 	pagelinksFile, err := os.Open(pagelinks)
@@ -122,11 +122,6 @@ func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string) error {
 		return err
 	}
 
-	pageIDChecker, err := NewMapSearcher(pageDirect, valueOnly)
-	if err != nil {
-		return err
-	}
-
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
 
@@ -134,11 +129,6 @@ func ResolvePagelinks(pageMerged, pageDirect, pagelinks, out string) error {
 		line := pagelinksScanner.Text()
 		key, title := KeyValFirstComma(line)
 		if title == "" {
-			failed++
-			continue
-		}
-		_, err := pageIDChecker.Search(key)
-		if err != nil {
 			failed++
 			continue
 		}
