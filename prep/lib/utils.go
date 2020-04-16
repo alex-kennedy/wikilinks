@@ -51,7 +51,7 @@ func KeyValLastComma(s string) (string, string) {
 	if commaIndex == -1 {
 		return s, ""
 	}
-	return s[:commaIndex], s[commaIndex+1:]
+	return string([]byte(s[:commaIndex])), string([]byte(s[commaIndex+1:]))
 }
 
 //KeyValFirstComma splits a line into key and value based on the first comma,
@@ -61,5 +61,5 @@ func KeyValFirstComma(s string) (string, string) {
 	if commaIndex == -1 {
 		return s, ""
 	}
-	return s[:commaIndex], s[commaIndex+1:]
+	return string([]byte(s[:commaIndex])), string([]byte(s[commaIndex+1:]))
 }
