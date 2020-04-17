@@ -1,0 +1,30 @@
+<style>
+   {{.CSS}}
+</style>
+<link
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,700;1,700&family=Roboto&display=swap"
+  rel="stylesheet"
+/>
+<div class="header">
+  <div class="title">
+    <h1>Preparation Pipeline</h1>
+  </div>
+  <div class="content">
+    <table>
+      <tr>
+        <th>Target Task</th>
+        <td>{{.TargetTask}}</td>
+      </tr>
+      <tr>
+        <th>Pipeline Status</th>
+        <td>{{.PipelineStatus}}</td>
+      </tr>
+    </table>
+    <p>
+      Find this project on
+      <a href="https://github.com/alex-kennedy/wikilinks">GitHub</a>.
+    </p>
+    <p>Project by <a href="https://alexk.nz">Alex Kennedy</a>.</p>
+  </div>
+</div>
+<div>{{.Image}}</div>

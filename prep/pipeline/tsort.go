@@ -7,6 +7,8 @@ import (
 	"github.com/alex-kennedy/wikilinks/prep/tasks"
 )
 
+//TopoSortTasks performs a topological sort on the given task, returning a task
+//ordering such that each dependency of the tasks will always be run first.
 func TopoSortTasks(head tasks.Task) (*[]tasks.Task, error) {
 	sorted := make([]tasks.Task, 0, 10)
 	visited := make(map[string]bool)

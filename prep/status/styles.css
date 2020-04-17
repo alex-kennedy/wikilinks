@@ -1,0 +1,40 @@
+html,
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  margin-bottom: 20vh;
+  padding: 0;
+}
+
+.header {
+  background-color: #f5f7fa;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.title {
+  background-image: linear-gradient(
+    90deg,
+    rgb(9, 32, 63) 0%,
+    rgb(83, 120, 149) 100%
+  );
+  font-family: "IBM Plex Mono", monospace;
+  padding: 16px;
+}
+
+h1 {
+  color: white;
+  margin: 0;
+}
+
+.content {
+  padding: 16px;
+}
+
+th {
+  text-align: right;
+}
+
+.pipeline {
+  align-content: center;
+}
