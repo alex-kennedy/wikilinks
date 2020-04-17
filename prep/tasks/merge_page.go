@@ -14,8 +14,7 @@ func (t *MergePage) Run() error {
 	pageRedirectSorted := viper.GetString("page_redirect_resolved")
 	both := []string{pageDirectSorted, pageRedirectSorted}
 	merged := viper.GetString("page_merged")
-	bytes := viper.GetInt("bytes")
-	return lib.MergeChunks(both, merged, bytes, lib.KeyValLastComma)
+	return lib.MergeChunks(both, merged, lib.KeyValLastComma)
 }
 
 //Done checks if the download completed successfully.

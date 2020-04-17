@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -103,13 +102,13 @@ func (h *fheap) bubbleDown(i int) {
 }
 
 //MergeChunks merges a list of sorted files into one.
-func MergeChunks(files []string, out string, bufferSize int, keyVal KeyValFunction) error {
+func MergeChunks(files []string, out string, keyVal KeyValFunction) error {
 	fOut, err := os.Create(out)
 	if err != nil {
 		return err
 	}
 	defer fOut.Close()
-	writer := bufio.NewWriterSize(fOut, bufferSize)
+	writer := bufio.NewWriter(fOut)
 	defer writer.Flush()
 	h := &fheap{0, make([]*chunk, 0, len(files)), writer}
 
@@ -121,15 +120,12 @@ func MergeChunks(files []string, out string, bufferSize int, keyVal KeyValFuncti
 		defer fIn.Close()
 
 		reader := bufio.NewScanner(fIn)
-		buffer := make([]byte, bufferSize)
-		reader.Buffer(buffer, bufferSize)
 
 		c := &chunk{"", "", reader, true, keyVal}
 		c.pop()
 		h.insert(c)
 	}
 
-	log.Println("Merging...")
 	bar := pb.StartNew(-1)
 	for h.placeMin() {
 		bar.Add(1)
@@ -220,5 +216,5 @@ func ExternalSort(in, out string, nBytes int, keyVal KeyValFunction) error {
 
 	sortIntoChunks(scanner, tempPath, nBytes, keyVal)
 	chunkPaths, _ := filepath.Glob(tempPath + "/*")
-	return MergeChunks(chunkPaths, out, nBytes/(len(chunkPaths)+1), keyVal)
+	return MergeChunks(chunkPaths, out, keyVal)
 }
