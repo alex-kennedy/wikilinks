@@ -41,14 +41,14 @@ func addFileNamesToConfig() {
 
 //InitialiseConfig sets up the configuration with Viper.
 func InitialiseConfig(configFileName *string) {
-	if *configFileName != "" {
-		viper.SetConfigFile(*configFileName)
-	}
-
 	// Overridden if config file was passed as a flag
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
+
+	if *configFileName != "" {
+		viper.SetConfigFile(*configFileName)
+	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
