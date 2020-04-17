@@ -123,7 +123,6 @@ func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string) error 
 		return err
 	}
 
-	log.Printf("Resolving pagelinks...")
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
 
