@@ -100,7 +100,7 @@ func valueOnly(s string) (string, string) {
 //ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs
 //(to reduce disk space). Note that if the ID of the page is not in the
 //page_direct ('real' pages) file, it can never have an inbound link.
-func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string) error {
+func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	successful, failed := 0, 0
 
 	pagelinksFile, err := os.Open(pagelinks)
@@ -118,7 +118,7 @@ func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string) error 
 	outWriter := bufio.NewWriter(outFile)
 	defer outWriter.Flush()
 
-	pageSearcher, err := NewBinarySearcher(pageMerged, pageMergedIndex, KeyValFirstComma)
+	pageSearcher, err := NewStringToIntArraySearcher(pageMerged)
 	if err != nil {
 		return err
 	}
@@ -126,37 +126,32 @@ func ResolvePagelinks(pageMerged, pageMergedIndex, pagelinks, out string) error 
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
 
+	var titleID, keyInt int
+	var key, title string
 	for pagelinksScanner.Scan() {
 		line := pagelinksScanner.Text()
-		key, title := KeyValFirstComma(line)
+		key, title = KeyValFirstComma(line)
 		if title == "" {
 			failed++
 			continue
 		}
-
-		titleID, err := pageSearcher.Search(title)
-		if err != nil {
-			failed++
-			continue
-		}
-
-		keyInt, err := strconv.Atoi(key)
+		keyInt, err = strconv.Atoi(key)
 		if err != nil {
 			failed++
 			log.Printf("'%s' couldn't be parsed to int", key)
 			continue
 		}
-		titleIDInt, err := strconv.Atoi(titleID)
-		if err != nil {
+
+		titleID = pageSearcher.Search(title)
+		if titleID == -1 {
 			failed++
-			log.Printf("'%s' couldn't be parsed to int", titleID)
 			continue
 		}
 
 		successful++
 		outWriter.WriteString(fmt.Sprintf("%s,%s\n",
 			strconv.FormatInt(int64(keyInt), 36),
-			strconv.FormatInt(int64(titleIDInt), 36)))
+			strconv.FormatInt(int64(titleID), 36)))
 		pb.Add(1)
 	}
 

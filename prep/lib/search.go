@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
+	"sort"
+	"strconv"
 
 	"github.com/cheggaaa/pb"
 )
@@ -135,4 +138,57 @@ func NewMapSearcher(fileName string, keyVal KeyValFunction) (*MapSearcher, error
 		bar.Add(1)
 	}
 	return &MapSearcher{keyValMap}, nil
+}
+
+//
+//Array search.
+//
+
+//StringToIntArraySearcher loads a file of line format "string,int" and allows
+//searching it by title.
+type StringToIntArraySearcher struct {
+	keys   []string
+	values []int
+}
+
+//Search searches the loaded file. Returns -1 if the search fails.
+func (s *StringToIntArraySearcher) Search(key string) int {
+	i := sort.SearchStrings(s.keys, key)
+	if i > len(s.keys) || s.keys[i] != key {
+		return -1
+	}
+	return s.values[i]
+}
+
+//NewStringToIntArraySearcher creates the container for searching the given
+//file. The file is loaded into memory.
+func NewStringToIntArraySearcher(fileName string) (*StringToIntArraySearcher, error) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var keys []string
+	var values []int
+
+	bar := pb.StartNew(-1)
+	defer bar.Finish()
+
+	scanner := bufio.NewScanner(file)
+	var line, key, value string
+	var valueInt int
+	for scanner.Scan() {
+		line = scanner.Text()
+		key, value = KeyValLastComma(line)
+		valueInt, err = strconv.Atoi(value)
+		if err != nil {
+			continue
+		}
+		keys = append(keys, string([]byte(key)))
+		values = append(values, valueInt)
+		bar.Add(1)
+	}
+	runtime.GC()
+	return &StringToIntArraySearcher{keys, values}, nil
 }
