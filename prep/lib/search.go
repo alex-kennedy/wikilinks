@@ -187,7 +187,7 @@ func NewStringToIntArraySearcher(fileName string) (*StringToIntArraySearcher, er
 //SearchByKey searches the loaded file by key. Returns -1 if the search fails.
 func (s *StringToIntArraySearcher) SearchByKey(key string) int {
 	i := sort.SearchStrings(s.keys, key)
-	if i > len(s.keys) || s.keys[i] != key {
+	if i >= len(s.keys) || s.keys[i] != key {
 		return -1
 	}
 	return s.values[i]
@@ -197,7 +197,7 @@ func (s *StringToIntArraySearcher) SearchByKey(key string) int {
 //string if the search fails.
 func (s *StringToIntArraySearcher) SearchByValue(value int) string {
 	i := sort.SearchInts(s.values, value)
-	if i > len(s.values) || s.values[i] != value {
+	if i >= len(s.values) || s.values[i] != value {
 		return ""
 	}
 	return s.keys[i]
