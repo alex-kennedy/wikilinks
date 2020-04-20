@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/cheggaaa/pb"
@@ -103,8 +104,6 @@ func valueOnly(s string) (string, string) {
 //pages are stored as a row in the pagelinks table. We have already resolved
 //this problem by bypassing redirect links, so they are skipped.
 func ResolvePagelinks(pageMerged, pagelinks, out string) error {
-	successful, failed := 0, 0
-
 	pagelinksFile, err := os.Open(pagelinks)
 	if err != nil {
 		return err
@@ -120,15 +119,22 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	outWriter := bufio.NewWriter(outFile)
 	defer outWriter.Flush()
 
+	fmt.Println("Loading page merged...")
 	pageSearcher, err := NewStringToIntArraySearcher(pageMerged)
 	if err != nil {
 		return err
 	}
+	//Gets sorted list of values in the pageSearcher
+	pageSearcherValues := make([]int, len(pageSearcher.values))
+	copy(pageSearcherValues, pageSearcher.values)
+	sort.Ints(pageSearcherValues)
+	fmt.Println("Done.")
 
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
 
-	var titleID, keyInt int
+	successful, failed, redirects := 0, 0, 0
+	var titleID, keyInt, i int
 	var key, title string
 	for pagelinksScanner.Scan() {
 		line := pagelinksScanner.Text()
@@ -144,12 +150,14 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 			continue
 		}
 
-		if pageSearcher.SearchByValue(keyInt) == "" {
+		i = sort.SearchInts(pageSearcherValues, keyInt)
+		if pageSearcherValues[i] != keyInt {
 			//Refers to a redirect, skipping
+			redirects++
 			continue
 		}
 
-		titleID = pageSearcher.SearchByKey(title)
+		titleID = pageSearcher.Search(title)
 		if titleID == -1 {
 			failed++
 			continue
@@ -162,6 +170,7 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 		pb.Add(1)
 	}
 
-	log.Printf("%d failed, %d lines succeeded", failed, successful)
+	log.Printf("%d failed, %d succeeded, %d redirected", failed, successful,
+		redirects)
 	return nil
 }
