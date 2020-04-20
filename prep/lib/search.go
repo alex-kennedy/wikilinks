@@ -151,15 +151,6 @@ type StringToIntArraySearcher struct {
 	values []int
 }
 
-//Search searches the loaded file. Returns -1 if the search fails.
-func (s *StringToIntArraySearcher) Search(key string) int {
-	i := sort.SearchStrings(s.keys, key)
-	if i > len(s.keys) || s.keys[i] != key {
-		return -1
-	}
-	return s.values[i]
-}
-
 //NewStringToIntArraySearcher creates the container for searching the given
 //file. The file is loaded into memory.
 func NewStringToIntArraySearcher(fileName string) (*StringToIntArraySearcher, error) {
@@ -191,4 +182,23 @@ func NewStringToIntArraySearcher(fileName string) (*StringToIntArraySearcher, er
 	}
 	runtime.GC()
 	return &StringToIntArraySearcher{keys, values}, nil
+}
+
+//SearchByKey searches the loaded file by key. Returns -1 if the search fails.
+func (s *StringToIntArraySearcher) SearchByKey(key string) int {
+	i := sort.SearchStrings(s.keys, key)
+	if i > len(s.keys) || s.keys[i] != key {
+		return -1
+	}
+	return s.values[i]
+}
+
+//SearchByValue searches the loaded file by value (an integer). Returns an empty
+//string if the search fails.
+func (s *StringToIntArraySearcher) SearchByValue(value int) string {
+	i := sort.SearchInts(s.values, value)
+	if i > len(s.values) || s.values[i] != value {
+		return ""
+	}
+	return s.keys[i]
 }

@@ -98,8 +98,10 @@ func valueOnly(s string) (string, string) {
 }
 
 //ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs
-//(to reduce disk space). Note that if the ID of the page is not in the
-//page_direct ('real' pages) file, it can never have an inbound link.
+//(to reduce disk space). A page link is only resolved if the page_id from which
+//the link originates is in the page_merged file. This is because redirected
+//pages are stored as a row in the pagelinks table. We have already resolved
+//this problem by bypassing redirect links, so they are skipped.
 func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	successful, failed := 0, 0
 
@@ -142,7 +144,12 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 			continue
 		}
 
-		titleID = pageSearcher.Search(title)
+		if pageSearcher.SearchByValue(keyInt) == "" {
+			//Refers to a redirect, skipping
+			continue
+		}
+
+		titleID = pageSearcher.SearchByKey(title)
 		if titleID == -1 {
 			failed++
 			continue
