@@ -3,6 +3,7 @@ package lib
 import (
 	"bufio"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/cheggaaa/pb"
@@ -46,6 +47,7 @@ func doPivot(in *bufio.Scanner, out *bufio.Writer, bar *pb.ProgressBar) {
 		line := in.Text()
 		k, v := KeyValFirstComma(line)
 		if k != mainKey {
+			sort.Strings(values)
 			out.WriteString(mainKey + "," + strings.Join(values, ",") + "\n")
 			mainKey = k
 			values = values[:0]

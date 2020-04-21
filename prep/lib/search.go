@@ -6,8 +6,10 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/cheggaaa/pb"
 )
@@ -192,4 +194,66 @@ func (s *StringToIntArraySearcher) Search(key string) int {
 		return -1
 	}
 	return s.values[i]
+}
+
+//PagelinksPivotedInMemory represents a loaded pagelinks_pivoted file for
+//searching.
+type PagelinksPivotedInMemory struct {
+	Sources      []uint32
+	Destinations [][]uint32
+}
+
+//NewPagelinksPivotedInMemory indexes a pivoted pagelink file for easy
+//searching.
+func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
+	file, err := os.Open(in)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	bar := pb.Start64(fileInfo.Size())
+	bar.Set(pb.Bytes, true)
+	defer bar.Finish()
+
+	sources := make([]uint32, 0)
+	destinations := make([][]uint32, 0)
+	var line string
+	var lineSplit []string
+	var tempID uint64
+	for scanner.Scan() {
+		line = scanner.Text()
+		lineSplit = strings.Split(line, ",")
+		destinationPages := make([]uint32, len(lineSplit)-1)
+		for i, pageString := range lineSplit[1:] {
+			tempID, err = strconv.ParseUint(pageString, 36, 32)
+			if err != nil {
+				return nil, err
+			}
+			destinationPages[i] = uint32(tempID)
+		}
+		// Parse source page
+		tempID, err = strconv.ParseUint(lineSplit[0], 36, 32)
+		if err != nil {
+			return nil, err
+		}
+		sources = append(sources, uint32(tempID))
+		destinations = append(destinations, destinationPages)
+		bar.Add(len(line) + 1) //File is UTF-8 ASCII, newlines are dropped
+	}
+
+	sourcesShort := make([]uint32, len(sources))
+	copy(sourcesShort, sources)
+	runtime.GC()
+	destinationsShort := make([][]uint32, len(destinations))
+	copy(destinationsShort, destinations)
+	runtime.GC()
+
+	debug.FreeOSMemory()
+	return &PagelinksPivotedInMemory{sourcesShort, destinationsShort}, nil
 }

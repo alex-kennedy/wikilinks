@@ -119,7 +119,7 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	outWriter := bufio.NewWriter(outFile)
 	defer outWriter.Flush()
 
-	fmt.Println("Loading page merged...")
+	log.Println("Loading page merged...")
 	pageSearcher, err := NewStringToIntArraySearcher(pageMerged)
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	pageSearcherValues := make([]int, len(pageSearcher.values))
 	copy(pageSearcherValues, pageSearcher.values)
 	sort.Ints(pageSearcherValues)
-	fmt.Println("Done.")
+	log.Println("Done.")
 
 	pb := pb.StartNew(-1)
 	defer pb.Finish()
@@ -151,7 +151,7 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 		}
 
 		i = sort.SearchInts(pageSearcherValues, keyInt)
-		if pageSearcherValues[i] != keyInt {
+		if i >= len(pageSearcherValues) || pageSearcherValues[i] != keyInt {
 			//Refers to a redirect, skipping
 			redirects++
 			continue
@@ -159,6 +159,12 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 
 		titleID = pageSearcher.Search(title)
 		if titleID == -1 {
+			failed++
+			continue
+		}
+
+		//Removes self-links
+		if keyInt == titleID {
 			failed++
 			continue
 		}
