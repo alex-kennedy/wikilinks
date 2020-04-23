@@ -27,11 +27,11 @@ func IndexFile(in, out string) error {
 	for {
 		n, err := fIn.Read(nextByte)
 		bar.Add(1)
-		if err != nil {
-			return err
-		}
 		if n == 0 {
 			break
+		}
+		if err != nil {
+			return err
 		}
 		//Though this is a UTF8 file with variable length characters, it is so that
 		//this byte pair will never occur except to represent a new line. Nifty.
