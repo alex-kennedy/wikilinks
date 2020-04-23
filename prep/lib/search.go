@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,7 +14,8 @@ import (
 )
 
 //Searcher represents a set of values that can be looked up by key. Here, it is
-//implemented as an external binary search and as a map.
+//implemented as an external binary search, as a map, and as a few specialised
+//in memory binary searches.
 type Searcher interface {
 	Search(string) (string, error)
 }
@@ -204,7 +204,7 @@ type PagelinksPivotedInMemory struct {
 }
 
 //NewPagelinksPivotedInMemory indexes a pivoted pagelink file for easy
-//searching.
+//searching. Note that this loads the pagelinks file into memory.
 func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
 	file, err := os.Open(in)
 	if err != nil {
@@ -213,12 +213,7 @@ func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	bar := pb.Start64(fileInfo.Size())
-	bar.Set(pb.Bytes, true)
+	bar := NewProgressBarFileSize(file)
 	defer bar.Finish()
 
 	sources := make([]uint32, 0)
@@ -253,7 +248,5 @@ func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
 	destinationsShort := make([][]uint32, len(destinations))
 	copy(destinationsShort, destinations)
 	runtime.GC()
-
-	debug.FreeOSMemory()
 	return &PagelinksPivotedInMemory{sourcesShort, destinationsShort}, nil
 }

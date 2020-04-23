@@ -7,8 +7,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-
-	"github.com/cheggaaa/pb"
 )
 
 //Status stores stats about the resolution process.
@@ -57,7 +55,7 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		return err
 	}
 
-	pb := pb.StartNew(-1)
+	pb := NewProgressBarFileSize(pageRedirectFile)
 	defer pb.Finish()
 
 	for pageRedirectScanner.Scan() {
@@ -84,18 +82,11 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		status.successfulPageLookups++
 
 		resolvedWriter.WriteString(kA + "," + vB + "\n")
-		pb.Add(1)
+		pb.Add(len(line) + 1)
 	}
 
 	status.printStatus()
 	return nil
-}
-
-//valueOnly is KeyValFunction which uses only the value, ignoring the key.
-//Allows a searcher to act as a membership checker.
-func valueOnly(s string) (string, string) {
-	_, v := KeyValLastComma(s)
-	return v, ""
 }
 
 //ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs
@@ -124,20 +115,20 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	if err != nil {
 		return err
 	}
-	//Gets sorted list of values in the pageSearcher
+	//Gets sorted list of values in the pageSearcher (pageMerged)
 	pageSearcherValues := make([]int, len(pageSearcher.values))
 	copy(pageSearcherValues, pageSearcher.values)
 	sort.Ints(pageSearcherValues)
 	log.Println("Done.")
 
-	pb := pb.StartNew(-1)
-	defer pb.Finish()
+	bar := NewProgressBarFileSize(pagelinksFile)
+	defer bar.Finish()
 
 	successful, failed, redirects := 0, 0, 0
 	var titleID, keyInt, i int
-	var key, title string
+	var key, title, line string
 	for pagelinksScanner.Scan() {
-		line := pagelinksScanner.Text()
+		line = pagelinksScanner.Text()
 		key, title = KeyValFirstComma(line)
 		if title == "" {
 			failed++
@@ -173,7 +164,7 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 		outWriter.WriteString(fmt.Sprintf("%s,%s\n",
 			strconv.FormatInt(int64(keyInt), 36),
 			strconv.FormatInt(int64(titleID), 36)))
-		pb.Add(1)
+		bar.Add(len(line) + 1)
 	}
 
 	log.Printf("%d failed, %d succeeded, %d redirected", failed, successful,

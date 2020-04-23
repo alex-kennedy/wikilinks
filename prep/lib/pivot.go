@@ -29,7 +29,7 @@ func PivotFile(inPath, outPath string, bytesPerBuffer int) error {
 	outWriter := bufio.NewWriterSize(outFile, bytesPerBuffer)
 	defer outWriter.Flush()
 
-	bar := pb.StartNew(-1)
+	bar := NewProgressBarFileSize(inFile)
 	defer bar.Finish()
 
 	doPivot(scanner, outWriter, bar)
@@ -53,6 +53,6 @@ func doPivot(in *bufio.Scanner, out *bufio.Writer, bar *pb.ProgressBar) {
 			values = values[:0]
 		}
 		values = append(values, v)
-		bar.Add(1)
+		bar.Add(len(line) + 1)
 	}
 }

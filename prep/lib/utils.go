@@ -63,3 +63,17 @@ func KeyValFirstComma(s string) (string, string) {
 	}
 	return string([]byte(s[:commaIndex])), string([]byte(s[commaIndex+1:]))
 }
+
+//NewProgressBarFileSize creates a new progress bar based on the size of the
+//file. When reading from the file, add the number of bytes read. Remember to
+//Finish() the progress bar. This function panics if it can't read the size of
+//the file.
+func NewProgressBarFileSize(file *os.File) *pb.ProgressBar {
+	fileInfo, err := file.Stat()
+	if err != nil {
+		panic(err)
+	}
+	bar := pb.Start64(fileInfo.Size())
+	bar.Set(pb.Bytes, true)
+	return bar
+}

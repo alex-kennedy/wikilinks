@@ -5,17 +5,12 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-
-	"github.com/cheggaaa/pb"
 )
 
 //IndexFile produces a file of int64s with the byte locations of the beginning
 //of each line. This function is very inefficient, but not enough to compel me
 //to make improvements.
 func IndexFile(in, out string) error {
-	bar := pb.StartNew(-1)
-	defer bar.Finish()
-
 	pos := []int64{0}
 	nextByte := []byte{0}
 	newLine := []byte("\n")
@@ -26,9 +21,12 @@ func IndexFile(in, out string) error {
 	}
 	defer fIn.Close()
 
+	bar := NewProgressBarFileSize(fIn)
+	defer bar.Finish()
+
 	for {
 		n, err := fIn.Read(nextByte)
-		i, err := fIn.Seek(0, os.SEEK_CUR)
+		bar.Add(1)
 		if err != nil {
 			return err
 		}
@@ -40,8 +38,8 @@ func IndexFile(in, out string) error {
 		if nextByte[0] != newLine[0] {
 			continue
 		}
+		i, err := fIn.Seek(0, os.SEEK_CUR)
 		pos = append(pos, i)
-		bar.Add(1)
 	}
 
 	fOut, err := os.Create(out)
