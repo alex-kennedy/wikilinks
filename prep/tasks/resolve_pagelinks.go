@@ -32,5 +32,5 @@ func (t *ResolvePagelinks) Cleanup() error {
 
 //Deps returns the dependencies of this task.
 func (t *ResolvePagelinks) Deps() []Task {
-	return []Task{&ExtractPagelinks{}, &IndexPageMerged{}, &SavePageIDs{}}
+	return []Task{&ExtractPagelinks{}, &MergePage{}, &SavePageIDs{}}
 }

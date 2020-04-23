@@ -18,7 +18,7 @@ func main() {
 
 	wikilinks.InitialiseConfig(configFileName)
 
-	rootTask := &tasks.IndexPagelinksPivoted{}
+	rootTask := &tasks.SaveBacklinks{}
 	taskPipeline, err := pipeline.NewPipeline(rootTask)
 	if err != nil {
 		log.Fatalf(err.Error())
