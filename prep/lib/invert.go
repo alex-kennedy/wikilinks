@@ -29,16 +29,14 @@ func SaveBacklinks(pagelinksPivotedName, pageIDsName, backlinksName string) erro
 
 	var line, toIDString string
 	var lineSplit []string
-	var fromID, toID uint32
-	var indexOfToID int
+	var fromIndex, toIndex uint32
 	for scanner.Scan() {
 		line = scanner.Text()
 		lineSplit = strings.Split(line, ",")
-		fromID = MustParseBase36(lineSplit[0])
+		fromIndex = MustParseBase36(lineSplit[0])
 		for _, toIDString = range lineSplit[1:] {
-			toID = MustParseBase36(toIDString)
-			indexOfToID = pageIDs.SearchMustFind(toID)
-			backlinks[indexOfToID] = append(backlinks[indexOfToID], fromID)
+			toIndex = MustParseBase36(toIDString)
+			backlinks[toIndex] = append(backlinks[toIndex], fromIndex)
 		}
 		bar.Add(len(line) + 1)
 	}
@@ -52,11 +50,11 @@ func SaveBacklinks(pagelinksPivotedName, pageIDsName, backlinksName string) erro
 	defer backlinksFile.Close()
 	outWriter := bufio.NewWriter(backlinksFile)
 	defer outWriter.Flush()
-	for i, id := range pageIDs {
-		outWriter.WriteString(strconv.FormatInt(int64(id), 36))
-		for _, fromID := range backlinks[i] {
+	for toIndex := range pageIDs {
+		outWriter.WriteString(strconv.FormatInt(int64(toIndex), 36))
+		for _, fromIndex := range backlinks[toIndex] {
 			outWriter.WriteString(",")
-			outWriter.WriteString(strconv.FormatInt(int64(fromID), 36))
+			outWriter.WriteString(strconv.FormatInt(int64(fromIndex), 36))
 		}
 		outWriter.WriteString("\n")
 	}

@@ -15,8 +15,9 @@ func (t *ResolvePagelinks) Run() error {
 	log.Println("Resolving pagelinks...")
 	pageMerged := viper.GetString("page_merged")
 	pagelinks := viper.GetString("pagelinks")
+	pageIDs := viper.GetString("page_ids")
 	out := viper.GetString("pagelinks_resolved")
-	return lib.ResolvePagelinks(pageMerged, pagelinks, out)
+	return lib.ResolvePagelinks(pageMerged, pagelinks, pageIDs, out)
 }
 
 //Done checks if the resolution completed successfully.
@@ -31,5 +32,5 @@ func (t *ResolvePagelinks) Cleanup() error {
 
 //Deps returns the dependencies of this task.
 func (t *ResolvePagelinks) Deps() []Task {
-	return []Task{&ExtractPagelinks{}, &IndexPageMerged{}}
+	return []Task{&ExtractPagelinks{}, &IndexPageMerged{}, &SavePageIDs{}}
 }

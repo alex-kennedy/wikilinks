@@ -70,6 +70,16 @@ func (p PageIDs) SearchMustFind(x uint32) int {
 	return -1
 }
 
+//Search finds the page index corresponding to a page ID, returning -1 if not
+//present.
+func (p PageIDs) Search(x uint32) int {
+	i := sort.Search(len(p), func(i int) bool { return p[i] >= x })
+	if i < len(p) && p[i] == x {
+		return i
+	}
+	return -1
+}
+
 //LoadPageIDs loads the canonical, sorted page IDs file.
 func LoadPageIDs(in string) (PageIDs, error) {
 	fIn, err := os.Open(in)

@@ -223,6 +223,7 @@ func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
 	var tempID uint64
 	for scanner.Scan() {
 		line = scanner.Text()
+		bar.Add(len(line) + 1) //File is UTF-8 ASCII, newlines are dropped
 		lineSplit = strings.Split(line, ",")
 		destinationPages := make([]uint32, len(lineSplit)-1)
 		for i, pageString := range lineSplit[1:] {
@@ -239,7 +240,6 @@ func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
 		}
 		sources = append(sources, uint32(tempID))
 		destinations = append(destinations, destinationPages)
-		bar.Add(len(line) + 1) //File is UTF-8 ASCII, newlines are dropped
 	}
 
 	sourcesShort := make([]uint32, len(sources))

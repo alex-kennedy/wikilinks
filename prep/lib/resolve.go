@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 	"strconv"
 )
 
@@ -18,8 +17,10 @@ type Status struct {
 }
 
 func (s *Status) printStatus() {
-	log.Printf("redirect %d failed, %d succeeded", s.failedRedirectLooksups, s.successfulRedirectLookups)
-	log.Printf("page: %d failed, %d succeeded", s.failedPageLookups, s.successfulPageLookups)
+	log.Printf("redirect: %d failed, %d succeeded", s.failedRedirectLooksups,
+		s.successfulRedirectLookups)
+	log.Printf("page: %d failed, %d succeeded", s.failedPageLookups,
+		s.successfulPageLookups)
 }
 
 //ResolveRedirects resolves the page_redirect -> redirect -> page_direct
@@ -27,7 +28,6 @@ func (s *Status) printStatus() {
 func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 	pageDirect, pageDirectIndex string, bytesPerBuffer int) error {
 	status := Status{}
-	status.printStatus()
 
 	pageRedirectFile, err := os.Open(pageRedirect)
 	if err != nil {
@@ -91,10 +91,11 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 
 //ResolvePagelinks turns pagelinks titles into IDs and saves them as base36 IDs
 //(to reduce disk space). A page link is only resolved if the page_id from which
-//the link originates is in the page_merged file. This is because redirected
-//pages are stored as a row in the pagelinks table. We have already resolved
-//this problem by bypassing redirect links, so they are skipped.
-func ResolvePagelinks(pageMerged, pagelinks, out string) error {
+//the link originates is in the page_direct file (a legal page index). This is
+//because redirected pages are stored as a row in the pagelinks table. We have
+//already resolved this problem by bypassing redirect links, so they are
+//skipped.
+func ResolvePagelinks(pageMerged, pagelinks, pageIDsFile, out string) error {
 	pagelinksFile, err := os.Open(pagelinks)
 	if err != nil {
 		return err
@@ -115,56 +116,58 @@ func ResolvePagelinks(pageMerged, pagelinks, out string) error {
 	if err != nil {
 		return err
 	}
-	//Gets sorted list of values in the pageSearcher (pageMerged)
-	pageSearcherValues := make([]int, len(pageSearcher.values))
-	copy(pageSearcherValues, pageSearcher.values)
-	sort.Ints(pageSearcherValues)
-	log.Println("Done.")
+
+	pageIDs, err := LoadPageIDs(pageIDsFile)
+	if err != nil {
+		return err
+	}
 
 	bar := NewProgressBarFileSize(pagelinksFile)
 	defer bar.Finish()
 
 	successful, failed, redirects := 0, 0, 0
-	var titleID, keyInt, i int
-	var key, title, line string
+	var fromID, fromIndex, toID, toIndex int
+	var fromString, title, line string
 	for pagelinksScanner.Scan() {
 		line = pagelinksScanner.Text()
-		key, title = KeyValFirstComma(line)
+		bar.Add(len(line) + 1)
+		fromString, title = KeyValFirstComma(line)
 		if title == "" {
 			failed++
 			continue
 		}
-		keyInt, err = strconv.Atoi(key)
+		fromID, err = strconv.Atoi(fromString)
 		if err != nil {
 			failed++
-			log.Printf("'%s' couldn't be parsed to int", key)
+			log.Printf("'%s' couldn't be parsed to int", fromString)
 			continue
 		}
 
-		i = sort.SearchInts(pageSearcherValues, keyInt)
-		if i >= len(pageSearcherValues) || pageSearcherValues[i] != keyInt {
+		fromIndex = pageIDs.Search(uint32(fromID))
+		if fromIndex == -1 {
 			//Refers to a redirect, skipping
 			redirects++
 			continue
 		}
 
-		titleID = pageSearcher.Search(title)
-		if titleID == -1 {
+		toID = pageSearcher.Search(title)
+		if toID == -1 {
 			failed++
 			continue
 		}
 
+		toIndex = pageIDs.SearchMustFind(uint32(toID))
+
 		//Removes self-links
-		if keyInt == titleID {
+		if fromIndex == toIndex {
 			failed++
 			continue
 		}
 
 		successful++
 		outWriter.WriteString(fmt.Sprintf("%s,%s\n",
-			strconv.FormatInt(int64(keyInt), 36),
-			strconv.FormatInt(int64(titleID), 36)))
-		bar.Add(len(line) + 1)
+			strconv.FormatInt(int64(fromIndex), 36),
+			strconv.FormatInt(int64(toIndex), 36)))
 	}
 
 	log.Printf("%d failed, %d succeeded, %d redirected", failed, successful,

@@ -35,6 +35,7 @@ func (p *Pipeline) Run() error {
 			err := t.Run()
 			if err != nil {
 				t.Cleanup()
+				log.Printf("pipeline error: %s", err.Error())
 				p.PipelineError = true
 				p.PipelineRunning = false
 				return err
@@ -46,6 +47,7 @@ func (p *Pipeline) Run() error {
 		}
 	}
 	p.PipelineRunning = false
+	log.Println("Pipeline done!")
 	return nil
 }
 

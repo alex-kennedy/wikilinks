@@ -33,5 +33,5 @@ func (t *SaveBacklinks) Cleanup() error {
 
 //Deps returns the dependencies of this task.
 func (t *SaveBacklinks) Deps() []Task {
-	return []Task{&SortPageDirect{}}
+	return []Task{&PivotPagelinks{}}
 }
