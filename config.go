@@ -39,6 +39,8 @@ func addFileNamesToConfig() {
 	viper.Set("redirect", path.Join(dir, "redirect.csv"))
 	viper.Set("redirect_sorted", path.Join(dir, "redirect_sorted.csv"))
 	viper.Set("redirect_index", path.Join(dir, "redirect_index.index"))
+
+	viper.Set("pageranks", path.Join(dir, "pageranks.txt"))
 }
 
 //InitialiseConfig sets up the configuration with Viper.

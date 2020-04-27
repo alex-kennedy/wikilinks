@@ -202,57 +202,78 @@ func (s *StringToIntArraySearcher) Search(key string) int {
 	return s.values[i]
 }
 
+//PagelinksPivoted is for obtaining the list of edges originating at each page.
+type PagelinksPivoted interface {
+	GetLinks(int) []uint32
+	GetNumberOfPages() int
+}
+
 //PagelinksPivotedInMemory represents a loaded pagelinks_pivoted file for
 //searching.
 type PagelinksPivotedInMemory struct {
-	Sources      []uint32
-	Destinations [][]uint32
+	Destinations  [][]uint32
+	NumberOfPages int
+}
+
+//GetLinks for the in memory case is essentially an index.
+func (p *PagelinksPivotedInMemory) GetLinks(index int) []uint32 {
+	return p.Destinations[index]
+}
+
+//GetNumberOfPages gets the total number of pages.
+func (p *PagelinksPivotedInMemory) GetNumberOfPages() int {
+	return p.NumberOfPages
+}
+
+//LinkExists returns whether the link from -> to exists.
+func (p *PagelinksPivotedInMemory) LinkExists(from, to uint32) bool {
+	outs := p.Destinations[from]
+	i := sort.Search(len(outs), func(i int) bool { return outs[i] >= to })
+	return i < len(outs) && outs[i] == to
 }
 
 //NewPagelinksPivotedInMemory indexes a pivoted pagelink file for easy
 //searching. Note that this loads the pagelinks file into memory.
-func NewPagelinksPivotedInMemory(in string) (*PagelinksPivotedInMemory, error) {
-	file, err := os.Open(in)
+func NewPagelinksPivotedInMemory(pagelinksName, pageIDsName string) (*PagelinksPivotedInMemory, error) {
+	pagelinksFile, err := os.Open(pagelinksName)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
+	defer pagelinksFile.Close()
+	scanner := bufio.NewScanner(pagelinksFile)
+	scanner.Buffer(make([]byte, 16*1024*1024), 16*1024*1024) // 16MB
 
-	bar := NewProgressBarFileSize(file)
+	bar := NewProgressBarFileSize(pagelinksFile)
 	defer bar.Finish()
 
-	sources := make([]uint32, 0)
-	destinations := make([][]uint32, 0)
+	pageIDs, err := LoadPageIDs(pageIDsName)
+	if err != nil {
+		return nil, err
+	}
+
+	pagesWithAtLeastOneLink := 0
+
+	destinations := make([][]uint32, len(pageIDs))
 	var line string
 	var lineSplit []string
-	var tempID uint64
+	var source uint32
+	var lineDestinations []uint32
 	for scanner.Scan() {
 		line = scanner.Text()
 		bar.Add(len(line) + 1) //File is UTF-8 ASCII, newlines are dropped
 		lineSplit = strings.Split(line, ",")
-		destinationPages := make([]uint32, len(lineSplit)-1)
+		source = MustParseBase36(lineSplit[0])
+		lineDestinations = make([]uint32, len(lineSplit)-1)
 		for i, pageString := range lineSplit[1:] {
-			tempID, err = strconv.ParseUint(pageString, 36, 32)
-			if err != nil {
-				return nil, err
-			}
-			destinationPages[i] = uint32(tempID)
+			lineDestinations[i] = MustParseBase36(pageString)
 		}
-		// Parse source page
-		tempID, err = strconv.ParseUint(lineSplit[0], 36, 32)
-		if err != nil {
-			return nil, err
+		if len(lineDestinations) > 0 {
+			pagesWithAtLeastOneLink++
 		}
-		sources = append(sources, uint32(tempID))
-		destinations = append(destinations, destinationPages)
+		destinations[source] = lineDestinations
 	}
-
-	sourcesShort := make([]uint32, len(sources))
-	copy(sourcesShort, sources)
-	runtime.GC()
-	destinationsShort := make([][]uint32, len(destinations))
-	copy(destinationsShort, destinations)
-	runtime.GC()
-	return &PagelinksPivotedInMemory{sourcesShort, destinationsShort}, nil
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
+	}
+	return &PagelinksPivotedInMemory{destinations, len(destinations)}, nil
 }
