@@ -36,6 +36,9 @@ func SavePageIDs(in, out string) error {
 		}
 		ids = append(ids, id)
 	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
 
 	sort.Ints(ids)
 
@@ -101,6 +104,9 @@ func LoadPageIDs(in string) (PageIDs, error) {
 			return nil, err
 		}
 		ids = append(ids, uint32(id))
+	}
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
 	}
 	return ids, nil
 }

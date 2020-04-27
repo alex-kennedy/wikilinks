@@ -101,6 +101,9 @@ func ExtractTable(
 			}
 		}
 	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
 	pb.Finish()
 	return nil
 }

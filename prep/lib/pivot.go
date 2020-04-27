@@ -33,6 +33,9 @@ func PivotFile(inPath, outPath string, bytesPerBuffer int) error {
 	defer bar.Finish()
 
 	doPivot(scanner, outWriter, bar)
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
 	return nil
 }
 

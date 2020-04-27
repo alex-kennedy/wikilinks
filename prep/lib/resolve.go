@@ -84,6 +84,9 @@ func ResolveRedirects(pageRedirect, resolved, redirect, redirectIndex,
 		resolvedWriter.WriteString(kA + "," + vB + "\n")
 		pb.Add(len(line) + 1)
 	}
+	if pageRedirectScanner.Err() != nil {
+		return pageRedirectScanner.Err()
+	}
 
 	status.printStatus()
 	return nil
@@ -168,6 +171,9 @@ func ResolvePagelinks(pageMerged, pagelinks, pageIDsFile, out string) error {
 		outWriter.WriteString(fmt.Sprintf("%s,%s\n",
 			strconv.FormatInt(int64(fromIndex), 36),
 			strconv.FormatInt(int64(toIndex), 36)))
+	}
+	if pagelinksScanner.Err() != nil {
+		return pagelinksScanner.Err()
 	}
 
 	log.Printf("%d failed, %d succeeded, %d redirected", failed, successful,

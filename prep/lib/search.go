@@ -139,6 +139,9 @@ func NewMapSearcher(fileName string, keyVal KeyValFunction) (*MapSearcher, error
 		keyValMap[key] = value
 		bar.Add(1)
 	}
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
+	}
 	return &MapSearcher{keyValMap}, nil
 }
 
@@ -182,6 +185,9 @@ func NewStringToIntArraySearcher(fileName string) (*StringToIntArraySearcher,
 		keys = append(keys, string([]byte(key)))
 		values = append(values, valueInt)
 		bar.Add(1)
+	}
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
 	}
 	runtime.GC()
 	return &StringToIntArraySearcher{keys, values}, nil

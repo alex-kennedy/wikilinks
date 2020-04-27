@@ -69,5 +69,8 @@ func loadIndex(name string) ([]int64, error) {
 		n, _ := strconv.ParseInt(scanner.Text(), 10, 64)
 		index = append(index, n)
 	}
+	if scanner.Err() != nil {
+		return nil, scanner.Err()
+	}
 	return index, nil
 }

@@ -130,6 +130,11 @@ func MergeChunks(files []string, out string, keyVal KeyValFunction) error {
 	for h.placeMin() {
 		bar.Add(1)
 	}
+	for _, scanner := range h.heap {
+		if scanner.reader.Err() != nil {
+			return scanner.reader.Err()
+		}
+	}
 	bar.Finish()
 	return nil
 }
@@ -192,7 +197,9 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int, keyVal 
 		fIndex++
 		toSort = toSort[:0]
 	}
-
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
 	bar.Finish()
 	return nil
 }
@@ -214,7 +221,10 @@ func ExternalSort(in, out string, nBytes int, keyVal KeyValFunction) error {
 	tempPath, _ := ioutil.TempDir(path, "sort")
 	defer os.RemoveAll(tempPath)
 
-	sortIntoChunks(scanner, tempPath, nBytes, keyVal)
+	err = sortIntoChunks(scanner, tempPath, nBytes, keyVal)
+	if err != nil {
+		return err
+	}
 	chunkPaths, _ := filepath.Glob(tempPath + "/*")
 	return MergeChunks(chunkPaths, out, keyVal)
 }

@@ -40,6 +40,9 @@ func SaveBacklinks(pagelinksPivotedName, pageIDsName, backlinksName string) erro
 		}
 		bar.Add(len(line) + 1)
 	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
 	bar.Finish()
 
 	log.Println("Writing to disk...")
