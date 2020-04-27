@@ -27,15 +27,15 @@ func SaveBacklinks(pagelinksPivotedName, pageIDsName, backlinksName string) erro
 
 	backlinks := make([][]uint32, len(pageIDs))
 
-	var line, toIDString string
+	var line, toIndexString string
 	var lineSplit []string
 	var fromIndex, toIndex uint32
 	for scanner.Scan() {
 		line = scanner.Text()
 		lineSplit = strings.Split(line, ",")
 		fromIndex = MustParseBase36(lineSplit[0])
-		for _, toIDString = range lineSplit[1:] {
-			toIndex = MustParseBase36(toIDString)
+		for _, toIndexString = range lineSplit[1:] {
+			toIndex = MustParseBase36(toIndexString)
 			backlinks[toIndex] = append(backlinks[toIndex], fromIndex)
 		}
 		bar.Add(len(line) + 1)
