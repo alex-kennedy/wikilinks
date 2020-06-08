@@ -1,4 +1,4 @@
-root_dir: "data"
+root_dir: "/data"
 site_url: "http://ftp.acc.umu.se/mirror/wikimedia.org/dumps/enwiki/"
-date: "20191201"
-bytes: 1073741824  # 1GB
+date: "20200501"
+bytes: 536870912  # 512 MB
