@@ -173,7 +173,7 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int, keyVal 
 		if err != nil {
 			return err
 		}
-		writer := bufio.NewWriterSize(fOut, nBytes/2)
+		writer := bufio.NewWriter(fOut)
 
 		for bytesRead < nBytes/2 {
 			continueScanning = scanner.Scan()
@@ -196,9 +196,6 @@ func sortIntoChunks(scanner *bufio.Scanner, tempPath string, nBytes int, keyVal 
 		writer.Flush()
 		fIndex++
 		toSort = toSort[:0]
-	}
-	if scanner.Err() != nil {
-		return scanner.Err()
 	}
 	bar.Finish()
 	return nil
