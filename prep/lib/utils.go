@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -76,4 +77,15 @@ func NewProgressBarFileSize(file *os.File) *pb.ProgressBar {
 	bar := pb.Start64(fileInfo.Size())
 	bar.Set(pb.Bytes, true)
 	return bar
+}
+
+//GetWikiNameFromURL determines the wiki name ("enwiki" or "simplewiki") from
+//the dump URL. It should be the last component of the name.
+func GetWikiNameFromURL(url string) (string, error) {
+	urlBits := strings.Split(strings.TrimRight(url, "/"), "/")
+	wikiName := urlBits[len(urlBits)-1]
+	if wikiName == "enwiki" || wikiName == "simplewiki" {
+		return wikiName, nil
+	}
+	return "", fmt.Errorf("invalid wiki name: %s", wikiName)
 }

@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/alex-kennedy/wikilinks/prep/lib"
@@ -13,7 +14,13 @@ type DownloadPage struct{}
 //Run downloads the file.
 func (t *DownloadPage) Run() error {
 	log.Println("Downloading page table...")
-	fileName := "enwiki-" + viper.GetString("date") + "-page.sql.gz"
+
+	wikiName, err := lib.GetWikiNameFromURL(viper.GetString("site_url"))
+	if err != nil {
+		return err
+	}
+
+	fileName := fmt.Sprintf("%s-%s-page.sql.gz", wikiName, viper.GetString("date"))
 	siteURL := viper.GetString("site_url") + viper.GetString("date") + "/"
 	outPath := viper.GetString("page_sql_gz")
 	return lib.DownloadWikiFile(fileName, siteURL, outPath)
