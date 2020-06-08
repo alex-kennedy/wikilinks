@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb/v3"
 )
 
 //CleanupFile will delete the file if it exists, returning any errors.

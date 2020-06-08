@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb/v3"
 )
 
 //PivotFile takes a sorted file of key,value and puts all values from the same

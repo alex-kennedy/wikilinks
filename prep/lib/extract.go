@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb/v3"
 )
 
 func toCsvEscaping(record string) string {
