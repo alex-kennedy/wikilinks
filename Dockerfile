@@ -8,4 +8,3 @@ WORKDIR /app
 RUN cd prep && go build .
 EXPOSE 8080
 CMD ["/app/prep/prep"]
-
